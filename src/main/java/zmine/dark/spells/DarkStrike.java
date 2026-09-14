@@ -1,8 +1,11 @@
 package zmine.dark.spells;
 
+import com.anthonyhilyard.prism.text.DynamicColor;
+import dev.chocoboy.cascade.VfxEffect;
 import dev.chocoboy.cascade.engine.effect.BlendMode;
 import dev.chocoboy.cascade.engine.effect.SpriteId;
 import dev.chocoboy.cascade.engine.emitter.ShapeSpec;
+import dev.chocoboy.cascade.engine.math.Vec3f;
 import dev.chocoboy.cascade.engine.tween.Easings;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
@@ -13,6 +16,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -39,7 +43,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
-        import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.PlayerRecasts;
 
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
@@ -63,6 +67,7 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -81,9 +86,9 @@ import java.util.Optional;
 import static com.mojang.text2speech.Narrator.LOGGER;
 import static zmine.dark.spells.DarkSpells.MODID;
 
-public class DarkTeleport extends AbstractSpell {
+public class DarkStrike extends AbstractSpell {
 
-    ResourceLocation dark_teleport = ResourceLocation.fromNamespaceAndPath(MODID, "dark_teleport");
+    ResourceLocation dark_strike = ResourceLocation.fromNamespaceAndPath(MODID, "dark_strike");
 
     private final DefaultConfig defaultConfig = new DefaultConfig()
             .setMinRarity(SpellRarity.LEGENDARY)
@@ -92,7 +97,7 @@ public class DarkTeleport extends AbstractSpell {
             .setCooldownSeconds(120)
             .build();
 
-    public DarkTeleport() {
+    public DarkStrike() {
         this.baseManaCost = 0;
         this.manaCostPerLevel = 0;
         this.baseSpellPower = 0;
@@ -101,7 +106,7 @@ public class DarkTeleport extends AbstractSpell {
 
     @Override
     public ResourceLocation getSpellResource() {
-        return dark_teleport;
+        return dark_strike;
     }
 
     @Override
@@ -180,37 +185,20 @@ public class DarkTeleport extends AbstractSpell {
                 Vec3 aimed = ZMineMagicHelper.getAimedPoint(serverPlayer, 3.0); // 3 градуса
 
                 if (aimed != null) {
-                    // Игрок навёлся на маркер
+                    //Vfx.burst(serverLevel, aimed);
                     Vfx.emitter()
                             .blend(BlendMode.ALPHA)
-                            .shape(ShapeSpec.disc(1f))
-                            .sprite(SpriteId.SMOKE)
-                            .count(1000)
-                            .speed(1/4)
-                            .orbit()
+                            .shape(ShapeSpec.sphere(10f))
+                            .shard()
+                            .count(10)
+                            .speed(0)
+                            .size(10f, 10f, Easings.EASE_OUT_QUAD)
                             .gravity(0,0,0)
-                            .gradient(Easings.LINEAR, 0xFF000000,0xFF000000,0xFF000000,0xFF000000)
-                            .trail(5)
-                            .play(serverLevel, serverPlayer.position());
-                    serverPlayer.teleportTo(aimed.x, aimed.y, aimed.z);
-                    Vfx.emitter()
-                            .blend(BlendMode.ALPHA)
-                            .shape(ShapeSpec.disc(1f))
-                            .sprite(SpriteId.SMOKE)
-                            .count(1000)
-                            .speed(1/4)
-                            .orbit()
-                            .gravity(0,0,0)
-                            .gradient(Easings.LINEAR, 0xFF000000,0xFF000000,0xFF000000,0xFF000000)
+                            .gradient(Easings.LINEAR, 0xFF000000,0xFF000000,0xFF000000,0xFFFFFFFF)
                             .trail(5)
                             .play(serverLevel, aimed);
-
-                } else {
-                    var spell = SpellRegistry.getSpell("dark_teleport");
-
-                    if (spell != null) {
-                        playerMagicData.getPlayerCooldowns().removeCooldown(spell.getSpellId());
-                    }
+                    clearSphericalRadius(serverLevel,aimed,20);
+                    //Vfx.dome(serverLevel,aimed,3,0x000000FF,3*20);
                 }
             }
         }
@@ -219,4 +207,28 @@ public class DarkTeleport extends AbstractSpell {
 
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
+
+    public static void clearSphericalRadius(ServerLevel level, Vec3 center, int radius) {
+        double rSq = radius * radius;
+
+        for (int x = -radius; x <= radius; x++) {
+            for (int y = -radius; y <= radius; y++) {
+                for (int z = -radius; z <= radius; z++) {
+                    double distSq = x * x + y * y + z * z;
+                    if (distSq > rSq) continue;
+
+                    BlockPos pos = new  BlockPos(
+                            (int) Math.floor(center.x())+x,
+                            (int) Math.floor(center.y())+y,
+                            (int) Math.floor(center.z())+z
+                    );
+                    // Правильная проверка границ в 1.21.1
+                    if (!level.isInWorldBounds(pos)) continue;
+                    if (level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState())) {
+                    }
+                }
+            }
+        }
+    }
+
 }

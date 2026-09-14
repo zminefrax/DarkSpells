@@ -1,13 +1,8 @@
 package zmine.dark.spells;
 
-import dev.chocoboy.cascade.engine.effect.BlendMode;
-import dev.chocoboy.cascade.engine.effect.SpriteId;
-import dev.chocoboy.cascade.engine.emitter.ShapeSpec;
-import dev.chocoboy.cascade.engine.tween.Easings;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
-import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
@@ -39,7 +34,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
-        import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.PlayerRecasts;
 
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
@@ -72,6 +67,7 @@ import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import zmine.dark.spells.data.DarkPointData;
 
 
 import javax.annotation.Nullable;
@@ -81,9 +77,9 @@ import java.util.Optional;
 import static com.mojang.text2speech.Narrator.LOGGER;
 import static zmine.dark.spells.DarkSpells.MODID;
 
-public class DarkTeleport extends AbstractSpell {
+public class DarkPointReloader extends AbstractSpell {
 
-    ResourceLocation dark_teleport = ResourceLocation.fromNamespaceAndPath(MODID, "dark_teleport");
+    ResourceLocation Dark_Point_Reloader = ResourceLocation.fromNamespaceAndPath(MODID, "dark_point_reloader");
 
     private final DefaultConfig defaultConfig = new DefaultConfig()
             .setMinRarity(SpellRarity.LEGENDARY)
@@ -92,7 +88,7 @@ public class DarkTeleport extends AbstractSpell {
             .setCooldownSeconds(120)
             .build();
 
-    public DarkTeleport() {
+    public DarkPointReloader() {
         this.baseManaCost = 0;
         this.manaCostPerLevel = 0;
         this.baseSpellPower = 0;
@@ -101,7 +97,7 @@ public class DarkTeleport extends AbstractSpell {
 
     @Override
     public ResourceLocation getSpellResource() {
-        return dark_teleport;
+        return Dark_Point_Reloader;
     }
 
     @Override
@@ -140,9 +136,9 @@ public class DarkTeleport extends AbstractSpell {
         int Level = level;
         int cost;
         if (Level == 0) {
-            cost = 500;
+            cost = 1;
         } else {
-            cost = 500/Level;
+            cost = 1/Level;
         }
 
         return cost;
@@ -150,7 +146,7 @@ public class DarkTeleport extends AbstractSpell {
 
     @Override
     public int getSpellCooldown() {
-        return 200*20;
+        return 1;
     }
 
     @Override
@@ -167,56 +163,18 @@ public class DarkTeleport extends AbstractSpell {
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.dark_spells.teleport")
+                Component.translatable("ui.dark_spells.dark_point_reloader")
         );
     }
 
+
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        if (level.isClientSide()) return;
 
-        if (entity instanceof Player player && level instanceof ServerLevel serverLevel) {
-            // На сервере, например при нажатии ПКМ или в логике заклинания:
-            if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
-                Vec3 aimed = ZMineMagicHelper.getAimedPoint(serverPlayer, 3.0); // 3 градуса
-
-                if (aimed != null) {
-                    // Игрок навёлся на маркер
-                    Vfx.emitter()
-                            .blend(BlendMode.ALPHA)
-                            .shape(ShapeSpec.disc(1f))
-                            .sprite(SpriteId.SMOKE)
-                            .count(1000)
-                            .speed(1/4)
-                            .orbit()
-                            .gravity(0,0,0)
-                            .gradient(Easings.LINEAR, 0xFF000000,0xFF000000,0xFF000000,0xFF000000)
-                            .trail(5)
-                            .play(serverLevel, serverPlayer.position());
-                    serverPlayer.teleportTo(aimed.x, aimed.y, aimed.z);
-                    Vfx.emitter()
-                            .blend(BlendMode.ALPHA)
-                            .shape(ShapeSpec.disc(1f))
-                            .sprite(SpriteId.SMOKE)
-                            .count(1000)
-                            .speed(1/4)
-                            .orbit()
-                            .gravity(0,0,0)
-                            .gradient(Easings.LINEAR, 0xFF000000,0xFF000000,0xFF000000,0xFF000000)
-                            .trail(5)
-                            .play(serverLevel, aimed);
-
-                } else {
-                    var spell = SpellRegistry.getSpell("dark_teleport");
-
-                    if (spell != null) {
-                        playerMagicData.getPlayerCooldowns().removeCooldown(spell.getSpellId());
-                    }
-                }
-            }
-        }
-
-
-
-        super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+        ServerPlayer caster = (ServerPlayer) entity;
+        ZMineMagicData data = caster.getData(ZMineAttachments.MAGIC_DATA);
+        PacketDistributor.sendToPlayer(caster, new SyncDarkPointsPayload(data.getPoints()));
     }
+
 }

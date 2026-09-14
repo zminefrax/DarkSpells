@@ -135,6 +135,7 @@ dependencies {
     implementation files("run/mods/irons_spellbooks-1.21.1-3.16.3.jar")
     implementation files("run/mods/cascade-neoforge-1.0.0+1.21.1.jar")
     implementation files("run/mods/irons_lib-1.21.1-2.1.0.jar")
+    implementation files("run/mods/Prism-1.21.1-neoforge-1.0.11.jar")
 
 
     // Example project dependency using a sister or child project:

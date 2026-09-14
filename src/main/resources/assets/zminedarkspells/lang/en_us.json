@@ -1,10 +1,16 @@
 {
   "spell.zminedarkspells.to_dark_side": "To the Dark Side",
+  "spell.zminedarkspells.dark_strike": "Dark Strike",
   "spell.zminedarkspells.dark_teleport": "Dark Teleport",
+  "spell.zminedarkspells.dark_point_reloader": "Dark Point Reloader",
   "spell.zminedarkspells.dark_point": "Dark Point",
+  "spell.zminedarkspells.dark_point_remover": "Dark Point Remover",
   "spell.zminedarkspells.to_dark_side.guide":"Sends you to dark side of the world, nobody can kill you.",
   "spell.zminedarkspells.dark_teleport.guide":"Teleports you any position on the world.",
   "ui.dark_spells.duration": "Duration: ",
   "ui.dark_spells.teleport": "Teleports you to Dark Point.",
-  "ui.dark_spells.dark_point": "Create Dark Point."
+  "ui.dark_spells.dark_point": "Create Dark Point.",
+  "ui.dark_spells.dark_point_remover": "Remove Dark Point.",
+  "ui.dark_spells.dark_point_reloader": "Reload Dark Point's.",
+  "ui.dark_spells.dark_strike": "Dark will take part of the world."
 }

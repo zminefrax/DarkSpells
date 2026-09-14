@@ -97,7 +97,7 @@ public class ClientPart {
 
             if (color==1) {
                 guiGraphics.blit(
-                        ResourceLocation.fromNamespaceAndPath(MODID, "gui/markers/active_marker"),                         // текстура
+                        ResourceLocation.fromNamespaceAndPath(MODID, "textures/gui/markers/active_marker.png"),                         // текстура
                         pixelX - size / 2,           // x
                         pixelY - size / 2,           // y
                         0,                                  // u (смещение по горизонтали в текстуре)
@@ -109,7 +109,7 @@ public class ClientPart {
                 );
             } else {
                 guiGraphics.blit(
-                        ResourceLocation.fromNamespaceAndPath(MODID, "gui/markers/de_active_marker"),                         // текстура
+                        ResourceLocation.fromNamespaceAndPath(MODID, "textures/gui/markers/de_active_marker.png"),                         // текстура
                         pixelX - size / 2,           // x
                         pixelY - size / 2,           // y
                         0,                                  // u (смещение по горизонтали в текстуре)

@@ -1,9 +1,5 @@
 package zmine.dark.spells;
 
-import dev.chocoboy.cascade.engine.effect.BlendMode;
-import dev.chocoboy.cascade.engine.effect.SpriteId;
-import dev.chocoboy.cascade.engine.emitter.ShapeSpec;
-import dev.chocoboy.cascade.engine.tween.Easings;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
@@ -24,8 +20,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
 import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static zmine.dark.spells.DarkSpells.MODID;
 
@@ -39,7 +34,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
-        import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.PlayerRecasts;
 
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
@@ -72,18 +67,17 @@ import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import zmine.dark.spells.data.DarkPointData;
 
 
 import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Optional;
 
 import static com.mojang.text2speech.Narrator.LOGGER;
 import static zmine.dark.spells.DarkSpells.MODID;
 
-public class DarkTeleport extends AbstractSpell {
+public class DarkPointRemover extends AbstractSpell {
 
-    ResourceLocation dark_teleport = ResourceLocation.fromNamespaceAndPath(MODID, "dark_teleport");
+    ResourceLocation Dark_Point_Remover = ResourceLocation.fromNamespaceAndPath(MODID, "dark_point_remover");
 
     private final DefaultConfig defaultConfig = new DefaultConfig()
             .setMinRarity(SpellRarity.LEGENDARY)
@@ -92,7 +86,7 @@ public class DarkTeleport extends AbstractSpell {
             .setCooldownSeconds(120)
             .build();
 
-    public DarkTeleport() {
+    public DarkPointRemover() {
         this.baseManaCost = 0;
         this.manaCostPerLevel = 0;
         this.baseSpellPower = 0;
@@ -101,7 +95,7 @@ public class DarkTeleport extends AbstractSpell {
 
     @Override
     public ResourceLocation getSpellResource() {
-        return dark_teleport;
+        return Dark_Point_Remover;
     }
 
     @Override
@@ -140,9 +134,9 @@ public class DarkTeleport extends AbstractSpell {
         int Level = level;
         int cost;
         if (Level == 0) {
-            cost = 500;
+            cost = 20;
         } else {
-            cost = 500/Level;
+            cost = 20/Level;
         }
 
         return cost;
@@ -150,7 +144,7 @@ public class DarkTeleport extends AbstractSpell {
 
     @Override
     public int getSpellCooldown() {
-        return 200*20;
+        return 1;
     }
 
     @Override
@@ -167,56 +161,34 @@ public class DarkTeleport extends AbstractSpell {
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.dark_spells.teleport")
+                Component.translatable("ui.dark_spells.dark_point_remover")
         );
     }
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-
         if (entity instanceof Player player && level instanceof ServerLevel serverLevel) {
             // На сервере, например при нажатии ПКМ или в логике заклинания:
             if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
                 Vec3 aimed = ZMineMagicHelper.getAimedPoint(serverPlayer, 3.0); // 3 градуса
 
                 if (aimed != null) {
-                    // Игрок навёлся на маркер
-                    Vfx.emitter()
-                            .blend(BlendMode.ALPHA)
-                            .shape(ShapeSpec.disc(1f))
-                            .sprite(SpriteId.SMOKE)
-                            .count(1000)
-                            .speed(1/4)
-                            .orbit()
-                            .gravity(0,0,0)
-                            .gradient(Easings.LINEAR, 0xFF000000,0xFF000000,0xFF000000,0xFF000000)
-                            .trail(5)
-                            .play(serverLevel, serverPlayer.position());
-                    serverPlayer.teleportTo(aimed.x, aimed.y, aimed.z);
-                    Vfx.emitter()
-                            .blend(BlendMode.ALPHA)
-                            .shape(ShapeSpec.disc(1f))
-                            .sprite(SpriteId.SMOKE)
-                            .count(1000)
-                            .speed(1/4)
-                            .orbit()
-                            .gravity(0,0,0)
-                            .gradient(Easings.LINEAR, 0xFF000000,0xFF000000,0xFF000000,0xFF000000)
-                            .trail(5)
-                            .play(serverLevel, aimed);
+                    var magicData = serverPlayer.getData(ZMineAttachments.MAGIC_DATA);
+                    List<DarkPointData> points = new ArrayList<>(magicData.getPoints());
 
-                } else {
-                    var spell = SpellRegistry.getSpell("dark_teleport");
+                    points.removeIf(dp ->
+                            dp.dimensionId().equals(level.dimension().location()) &&
+                                    Math.abs(dp.position().x - aimed.x) < 0.01 &&
+                                    Math.abs(dp.position().y - aimed.y) < 0.01 &&
+                                    Math.abs(dp.position().z - aimed.z) < 0.01
+                    );
 
-                    if (spell != null) {
-                        playerMagicData.getPlayerCooldowns().removeCooldown(spell.getSpellId());
-                    }
+                    magicData.setPoints(points);
+
+
+                    PacketDistributor.sendToPlayer(serverPlayer, new SyncDarkPointsPayload(points));
                 }
             }
         }
-
-
-
-        super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 }

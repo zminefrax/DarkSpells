@@ -26,6 +26,15 @@ public class Spells {
     public static final Supplier<AbstractSpell> DARK_POINT = SPELLS.register("dark_point", DarkPoint::new);
     public static final Supplier<SpellData> DARK_POINT_Data = () -> new SpellData(new DarkPoint(),1,false);
 
+    public static final Supplier<AbstractSpell> DARK_POINT_REMOVER = SPELLS.register("dark_point_remover", DarkPointRemover::new);
+    public static final Supplier<SpellData> DARK_POINT_REMOVER_Data = () -> new SpellData(new DarkPointRemover(),1,false);
+
+    public static final Supplier<AbstractSpell> DARK_POINT_RELOADER = SPELLS.register("dark_point_reloader", DarkPointReloader::new);
+    public static final Supplier<SpellData> DARK_POINT_RELOADER_Data = () -> new SpellData(new DarkPointReloader(),1,false);
+
+    public static final Supplier<AbstractSpell> DARK_STRIKE = SPELLS.register("dark_strike", DarkStrike::new);
+    public static final Supplier<SpellData> DARK_STRIKE_Data = () -> new SpellData(new DarkStrike(),1,false);
+
 
     public static void register(IEventBus bus) {
         SPELLS.register(bus);
