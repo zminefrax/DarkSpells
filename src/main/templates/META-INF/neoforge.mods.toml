@@ -7,7 +7,7 @@ version="${mod_version}"
 displayName="${mod_name}"
 icon="assets/icon.png"
 description='''
-Addon for Mekanism that adds radiation mitigation methods'''
+Мод от балбеса'''
 [[dependencies.${mod_id}]]
     modId="neoforge"
     type="required"
@@ -19,12 +19,5 @@ Addon for Mekanism that adds radiation mitigation methods'''
     modId="minecraft"
     type="required"
     versionRange="${minecraft_version_range}"
-    ordering="NONE"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
-    modId="mekanism"
-    type="required"
-    versionRange="10.7.15"
     ordering="NONE"
     side="BOTH"
