@@ -148,8 +148,9 @@ public class ToDarkSideSpell extends AbstractSpell {
 
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
+        String dur = Utils.timeFromTicks(getRecastDuration(spellLevel, caster),2);
         return List.of(
-                Component.translatable("ui.dark_spells.duration", Utils.timeFromTicks(getRecastDuration(spellLevel, caster), 2))
+                Component.translatable("ui.dark_spells.duration"), Component.literal(dur)
         );
     }
 

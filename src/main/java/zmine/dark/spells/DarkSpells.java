@@ -38,6 +38,7 @@ public class DarkSpells {
         ZMineAttachments.ATTACHMENT_TYPES.register(modEventBus);
         Spells.register(modEventBus);
         Items.register(modEventBus);
+        DarkSwordItem.ITEMS.register(modEventBus);
         CREATIVE_MODE_TABS.register(modEventBus);
         NeoForge.EVENT_BUS.register(this);
         modEventBus.addListener(this::addCreative);

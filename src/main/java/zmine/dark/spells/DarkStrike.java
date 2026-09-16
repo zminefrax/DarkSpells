@@ -1,6 +1,5 @@
 package zmine.dark.spells;
 
-import com.anthonyhilyard.prism.text.DynamicColor;
 import dev.chocoboy.cascade.VfxEffect;
 import dev.chocoboy.cascade.engine.effect.BlendMode;
 import dev.chocoboy.cascade.engine.effect.SpriteId;
