@@ -204,11 +204,7 @@ public class DarkTeleport extends AbstractSpell {
                             .play(serverLevel, aimed);
 
                 } else {
-                    var spell = SpellRegistry.getSpell("dark_teleport");
-
-                    if (spell != null) {
-                        playerMagicData.getPlayerCooldowns().removeCooldown(spell.getSpellId());
-                    }
+                    return;
                 }
             }
         }

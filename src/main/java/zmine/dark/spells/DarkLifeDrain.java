@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
+import io.redspace.ironsspellbooks.api.util.RaycastBuilder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
@@ -17,6 +18,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -59,6 +61,8 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -76,12 +80,13 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.mojang.text2speech.Narrator.LOGGER;
+import static io.redspace.ironslib.attribute.AttributeRemapRegistry.findTarget;
 import static zmine.dark.spells.DarkSpells.*;
 
 
 public class DarkLifeDrain extends AbstractSpell {
-
-    ResourceLocation Dark_Life_Drain = ResourceLocation.fromNamespaceAndPath(MODID, "dark_life_drain");
+    public static final String SPELL_NAME = "dark_life_drain";
+    ResourceLocation Dark_Life_Drain = ResourceLocation.fromNamespaceAndPath(MODID, SPELL_NAME);
 
     private final DefaultConfig defaultConfig = new DefaultConfig()
             .setMinRarity(SpellRarity.LEGENDARY)
@@ -172,40 +177,71 @@ public class DarkLifeDrain extends AbstractSpell {
 
         return 20 * 20 * spellLevel;
     }
-
     @Override
-    public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-
-        if (entity instanceof Player player && level instanceof ServerLevel serverLevel) {
-            CastData tmpCastData = new CastData();
-            RecastInstance SpellRecastInstance = new RecastInstance(MODID+":dark_life_drain",spellLevel,2,getRecastDuration(spellLevel,entity),castSource,tmpCastData);
-            DarkSpells.GrayStatus = true;
-
-            if (entity instanceof ServerPlayer servPlayer) {
-                if (playerMagicData.getPlayerRecasts().hasRecastForSpell(getSpellId())) {
-                    entity.removeEffect(MobEffectRegistry.TRUE_INVISIBILITY);
-
-                } else {
-                    entity.addEffect(new MobEffectInstance(MobEffectRegistry.TRUE_INVISIBILITY, -1, 0, false, false, false));
-                    playerMagicData.getPlayerRecasts().addRecast(SpellRecastInstance, playerMagicData);
-
-                }
-            }
+    public void onRecastFinished(ServerPlayer serverPlayer,
+                                 RecastInstance recastInstance,
+                                 RecastResult recastResult,
+                                 ICastDataSerializable castDataSerializable) {
+        // Вызывается когда рекаст закончился (по таймеру, по использованию,
+        // или при ручной отмене через removeRecast)
+        if (castDataSerializable instanceof LifeDrainCastData data) {
+            data.setActive(false); // гарантированно выключаем
         }
-
-        super.onCast(level, spellLevel, entity, castSource, playerMagicData);
-    }
-
-
-    @Override
-    public void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance, RecastResult recastResult, ICastDataSerializable castDataSerializable) {
-        if (recastResult != RecastResult.USED_ALL_RECASTS) {
-
-        }
-
-        serverPlayer.removeEffect(MobEffectRegistry.TRUE_INVISIBILITY);
-        DarkSpells.GrayStatus = false;
         super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);
     }
 
+    @Override
+    public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        PlayerRecasts recasts = playerMagicData.getPlayerRecasts();
+        if (entity instanceof Player player && level instanceof ServerLevel serverLevel) {
+            if (!recasts.hasRecastForSpell(this)) {
+                // === ПЕРВЫЙ КАСТ: ищем цель, на которую смотрит игрок ===
+
+                // Рейкаст: бросаем луч от глаз игрока, длина 16 блоков
+                // Utils.raycastForEntity ищет сущность на луче
+                HitResult hitResult = Utils.raycastForEntity(level, entity, 500, false);
+                Vec3 targetVec = hitResult.getLocation();
+                AABB box = AABB.ofSize(targetVec, 6.0, 6.0, 6.0); // 6 = диаметр (радиус 3 блока)
+                List<Entity> entities = serverLevel.getEntitiesOfClass(Entity.class, box);
+                if (!entities.isEmpty()) {
+                    Entity target = entities.get(0);
+
+
+                    if (target == null) {
+                        // Нет цели — не запускаем заклинание
+                        return;
+                    }
+
+                    // Сохраняем UUID цели
+                    LifeDrainCastData castData = new LifeDrainCastData();
+                    castData.setTargetUuid(target.getUUID());
+                    // Длительность рекаста
+                    int durationTicks = getRecastDuration(spellLevel, entity);
+
+                    RecastInstance recastInstance = new RecastInstance(
+                            this.getSpellId(),
+                            spellLevel,
+                            getRecastCount(spellLevel, entity),
+                            durationTicks,
+                            castSource,
+                            castData
+                    );
+
+                    recasts.addRecast(recastInstance, playerMagicData);
+
+
+                } else {
+                    // === ВТОРОЙ КАСТ: ручная отмена ===
+                    recasts.getActiveRecasts().forEach(recast -> {
+                        if (recast.getSpellId().equals(this.getSpellId())) {
+                            if (recast.getCastData() instanceof LifeDrainCastData data) {
+                                data.setActive(false);
+                            }
+                            recasts.removeRecast(recast.getSpellId());
+                        }
+                    });
+                }
+            }
+        }
+    }
 }
