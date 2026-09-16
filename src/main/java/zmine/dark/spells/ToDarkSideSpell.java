@@ -53,6 +53,7 @@ import java.util.Optional;
 
 import static com.mojang.text2speech.Narrator.LOGGER;
 import static zmine.dark.spells.DarkSpells.MODID;
+import static zmine.dark.spells.DarkSpells.SchoolResource;
 
 public class ToDarkSideSpell extends AbstractSpell {
     static boolean Status = false;
@@ -61,7 +62,7 @@ public class ToDarkSideSpell extends AbstractSpell {
 
     private final DefaultConfig defaultConfig = new DefaultConfig()
             .setMinRarity(SpellRarity.LEGENDARY)
-            .setSchoolResource(SchoolRegistry.ELDRITCH_RESOURCE) // или другая школа
+            .setSchoolResource(SchoolResource) // или другая школа
             .setMaxLevel(5)
             .setCooldownSeconds(120)
             .build();

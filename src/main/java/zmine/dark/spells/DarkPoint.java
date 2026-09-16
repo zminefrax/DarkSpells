@@ -75,7 +75,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.mojang.text2speech.Narrator.LOGGER;
-import static zmine.dark.spells.DarkSpells.MODID;
+import static zmine.dark.spells.DarkSpells.SchoolResource;
+
 
 public class DarkPoint extends AbstractSpell {
 
@@ -83,7 +84,7 @@ public class DarkPoint extends AbstractSpell {
 
     private final DefaultConfig defaultConfig = new DefaultConfig()
             .setMinRarity(SpellRarity.LEGENDARY)
-            .setSchoolResource(SchoolRegistry.ELDRITCH_RESOURCE) // или другая школа
+            .setSchoolResource(SchoolResource) // или другая школа
             .setMaxLevel(1)
             .setCooldownSeconds(120)
             .build();

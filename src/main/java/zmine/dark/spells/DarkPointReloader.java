@@ -22,8 +22,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-import static zmine.dark.spells.DarkSpells.MODID;
-
 import dev.chocoboy.cascade.Vfx;
 import io.redspace.ironsspellbooks.IronsSpellbooks;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
@@ -75,7 +73,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.mojang.text2speech.Narrator.LOGGER;
-import static zmine.dark.spells.DarkSpells.MODID;
+import static zmine.dark.spells.DarkSpells.*;
 
 public class DarkPointReloader extends AbstractSpell {
 
@@ -83,7 +81,7 @@ public class DarkPointReloader extends AbstractSpell {
 
     private final DefaultConfig defaultConfig = new DefaultConfig()
             .setMinRarity(SpellRarity.LEGENDARY)
-            .setSchoolResource(SchoolRegistry.ELDRITCH_RESOURCE) // или другая школа
+            .setSchoolResource(SchoolResource) // или другая школа
             .setMaxLevel(1)
             .setCooldownSeconds(120)
             .build();

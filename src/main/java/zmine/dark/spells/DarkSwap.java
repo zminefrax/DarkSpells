@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static zmine.dark.spells.DarkSpells.MODID;
+import static zmine.dark.spells.DarkSpells.SchoolResource;
 
 import dev.chocoboy.cascade.Vfx;
 
@@ -37,7 +38,7 @@ public class DarkSwap extends AbstractSpell {
 
     private final DefaultConfig defaultConfig = new DefaultConfig()
             .setMinRarity(SpellRarity.LEGENDARY)
-            .setSchoolResource(SchoolRegistry.ELDRITCH_RESOURCE) // или другая школа
+            .setSchoolResource(SchoolResource) // или другая школа
             .setMaxLevel(1)
             .setCooldownSeconds(120)
             .build();

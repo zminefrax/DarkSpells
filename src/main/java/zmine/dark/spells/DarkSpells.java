@@ -1,6 +1,7 @@
 package zmine.dark.spells;
 
 import com.mojang.logging.LogUtils;
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -33,7 +34,7 @@ public class DarkSpells {
     public static boolean GrayStatus = false;
 
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
-
+    public static final ResourceLocation SchoolResource = SchoolRegistry.ELDRITCH_RESOURCE;
     public DarkSpells(IEventBus modEventBus, ModContainer modContainer) {
         ZMineAttachments.ATTACHMENT_TYPES.register(modEventBus);
         Spells.register(modEventBus);

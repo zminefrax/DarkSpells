@@ -1,21 +1,13 @@
 package zmine.dark.spells;
 
-import dev.chocoboy.cascade.VfxEffect;
-import dev.chocoboy.cascade.engine.effect.BlendMode;
-import dev.chocoboy.cascade.engine.effect.SpriteId;
-import dev.chocoboy.cascade.engine.emitter.ShapeSpec;
-import dev.chocoboy.cascade.engine.math.Vec3f;
-import dev.chocoboy.cascade.engine.tween.Easings;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
-import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -64,7 +56,6 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -74,6 +65,7 @@ import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import zmine.dark.spells.data.DarkPointData;
 
 
 import javax.annotation.Nullable;
@@ -82,10 +74,11 @@ import java.util.Optional;
 
 import static com.mojang.text2speech.Narrator.LOGGER;
 import static zmine.dark.spells.DarkSpells.*;
+import static zmine.dark.spells.DarkSwordItem.DARK_SWORD;
 
-public class DarkStrike extends AbstractSpell {
+public class DarkSwordGiver extends AbstractSpell {
 
-    ResourceLocation dark_strike = ResourceLocation.fromNamespaceAndPath(MODID, "dark_strike");
+    ResourceLocation Dark_Sword_Giver = ResourceLocation.fromNamespaceAndPath(MODID, "dark_sword_give");
 
     private final DefaultConfig defaultConfig = new DefaultConfig()
             .setMinRarity(SpellRarity.LEGENDARY)
@@ -94,7 +87,7 @@ public class DarkStrike extends AbstractSpell {
             .setCooldownSeconds(120)
             .build();
 
-    public DarkStrike() {
+    public DarkSwordGiver() {
         this.baseManaCost = 0;
         this.manaCostPerLevel = 0;
         this.baseSpellPower = 0;
@@ -103,7 +96,7 @@ public class DarkStrike extends AbstractSpell {
 
     @Override
     public ResourceLocation getSpellResource() {
-        return dark_strike;
+        return Dark_Sword_Giver;
     }
 
     @Override
@@ -142,9 +135,9 @@ public class DarkStrike extends AbstractSpell {
         int Level = level;
         int cost;
         if (Level == 0) {
-            cost = 500;
+            cost = 700;
         } else {
-            cost = 500/Level;
+            cost = 700/Level;
         }
 
         return cost;
@@ -152,7 +145,7 @@ public class DarkStrike extends AbstractSpell {
 
     @Override
     public int getSpellCooldown() {
-        return 200*20;
+        return 1;
     }
 
     @Override
@@ -169,63 +162,21 @@ public class DarkStrike extends AbstractSpell {
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.dark_spells.teleport")
+                Component.translatable("ui.dark_spells.dark_sword_give")
         );
     }
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        if (level.isClientSide()) return;
 
-        if (entity instanceof Player player && level instanceof ServerLevel serverLevel) {
-            // На сервере, например при нажатии ПКМ или в логике заклинания:
-            if (!level.isClientSide() && player instanceof ServerPlayer serverPlayer) {
-                Vec3 aimed = ZMineMagicHelper.getAimedPoint(serverPlayer, 3.0); // 3 градуса
+        ServerPlayer caster = (ServerPlayer) entity;
 
-                if (aimed != null) {
-                    //Vfx.burst(serverLevel, aimed);
-                    Vfx.emitter()
-                            .blend(BlendMode.ALPHA)
-                            .shape(ShapeSpec.sphere(10f))
-                            .shard()
-                            .count(10)
-                            .speed(0)
-                            .size(10f, 10f, Easings.EASE_OUT_QUAD)
-                            .gravity(0,0,0)
-                            .gradient(Easings.LINEAR, 0xFF000000,0xFF000000,0xFF000000,0xFFFFFFFF)
-                            .trail(5)
-                            .play(serverLevel, aimed);
-                    clearSphericalRadius(serverLevel,aimed,20);
-                    //Vfx.dome(serverLevel,aimed,3,0x000000FF,3*20);
-                }
-            }
-        }
+        // Создаём стопку предмета. Здесь `myCustomSword` — это объект Item, который вы зарегистрировали в моде.
+        ItemStack itemStack = new ItemStack(DARK_SWORD.get(), 1); // 1 — количество
 
-
-
-        super.onCast(level, spellLevel, entity, castSource, playerMagicData);
-    }
-
-    public static void clearSphericalRadius(ServerLevel level, Vec3 center, int radius) {
-        double rSq = radius * radius;
-
-        for (int x = -radius; x <= radius; x++) {
-            for (int y = -radius; y <= radius; y++) {
-                for (int z = -radius; z <= radius; z++) {
-                    double distSq = x * x + y * y + z * z;
-                    if (distSq > rSq) continue;
-
-                    BlockPos pos = new  BlockPos(
-                            (int) Math.floor(center.x())+x,
-                            (int) Math.floor(center.y())+y,
-                            (int) Math.floor(center.z())+z
-                    );
-                    // Правильная проверка границ в 1.21.1
-                    if (!level.isInWorldBounds(pos)) continue;
-                    if (level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState())) {
-                    }
-                }
-            }
-        }
+        // Выдаём игроку
+        caster.addItem(itemStack);
     }
 
 }

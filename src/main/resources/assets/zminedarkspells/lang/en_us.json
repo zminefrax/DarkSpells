@@ -6,6 +6,7 @@
   "spell.zminedarkspells.dark_point": "Dark Point",
   "spell.zminedarkspells.dark_point_remover": "Dark Point Remover",
   "spell.zminedarkspells.dark_swap": "Dark Swap",
+  "spell.zminedarkspells.dark_sword_give": "Dark Swap",
   "item.zminedarkspells.dark_sword": "Dark Sword",
   "spell.zminedarkspells.to_dark_side.guide":"Sends you to dark side of the world, nobody can kill you.",
   "spell.zminedarkspells.dark_point.guide":"Create a Dark Point in the world.",
@@ -14,6 +15,7 @@
   "spell.zminedarkspells.dark_strike.guide":"Create Dark Shard on Dark Point and remove blocks radius 20.",
   "spell.zminedarkspells.dark_point_reloader.guide":"Reloads Dark Points on the world.",
   "spell.zminedarkspells.dark_teleport.guide":"Teleports you any Dark Point on the world.",
+  "spell.zminedarkspells.dark_sword_give.guide":"Gives you Dark Sword from the Dark World.",
   "ui.dark_spells.duration": "Duration: ",
   "ui.dark_spells.teleport": "Teleports you to Dark Point.",
   "ui.dark_spells.dark_point": "Create Dark Point.",
@@ -21,5 +23,6 @@
   "ui.dark_spells.dark_point_reloader": "Reload Dark Point's.",
   "ui.dark_spells.dark_strike": "Dark will take part of the world.",
   "ui.dark_spells.dark_swap": "Swaps entity from Dark Point to you.",
-  "ui.dark_spells.dark_sword": "Swaps entity from Dark Point to you."
+  "ui.dark_spells.dark_sword": "Swaps entity from Dark Point to you.",
+  "ui.dark_spells.dark_sword_give": "Gives you Dark Sword, Damage: 210 | Uses: 1"
 }

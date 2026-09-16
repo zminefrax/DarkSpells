@@ -38,6 +38,9 @@ public class Spells {
     public static final Supplier<AbstractSpell> DARK_SWAP = SPELLS.register("dark_swap", DarkSwap::new);
     public static final Supplier<SpellData> DARK_SWAP_Data = () -> new SpellData(new DarkSwap(),1,false);
 
+    public static final Supplier<AbstractSpell> DARK_SWORD_GIVE = SPELLS.register("dark_sword_give", DarkSwordGiver::new);
+    public static final Supplier<SpellData> DARK_SWORD_GIVE_Data = () -> new SpellData(new DarkSwordGiver(),1,false);
+
     public static void register(IEventBus bus) {
         SPELLS.register(bus);
     }
